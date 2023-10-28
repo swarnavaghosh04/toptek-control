@@ -2,7 +2,7 @@ import time
 from dataclasses import dataclass
 from enum import IntEnum
 
-import logger
+import logging 
 import serial
 
 
@@ -110,7 +110,7 @@ class Toptek:
             raise RuntimeError("Invalid welcome message")
 
     def write(self, cmd: str) -> None:
-        logger.debug(f"TX: {cmd}")
+        logging.debug(f"TX: {cmd}")
         self.ser.write(cmd.encode("ascii"))
         time.sleep(0.05)
         ret = self.readline()
@@ -120,7 +120,7 @@ class Toptek:
     def readline(self) -> str:
         line = self.ser.readline()
         line_decoded = line.decode("utf-8").strip()
-        logger.debug(f"RX: {line_decoded}")
+        logging.debug(f"RX: {line_decoded}")
         return line_decoded
 
     def query(self, cmd: str) -> str:
@@ -133,7 +133,7 @@ class Toptek:
     def switch_off(self, switch: ToptekSwitches) -> None:
         self.write(f"U{int(switch)}")
 
-    def press(self, switch: ToptekSwitches, delay: float = 0.5):
+    def press(self, switch: ToptekSwitches, delay: float = 0.2):
         self.switch_on(switch)
         time.sleep(delay)
         self.switch_off(switch)
@@ -174,17 +174,22 @@ class Toptek:
         )
 
     def get_tx_power(self) -> int:
-        self.press(ToptekSwitches.SET_PWR)
-        time.sleep(0.5)
-        state = self.read_state()
-        return state.state2power()
+        self.press(ToptekSwitches.SET_PWR, delay=0.1)
+        state = None
+        for i in range(10):
+            time.sleep(0.1)
+            state = self.read_state()
+            if state.get_power() != 0:
+                break
+
+        return state.get_power()
 
     def set_tx_power(self, power: int) -> None:
         if power not in [20, 40, 60, 80]:
             raise ValueError(f"Invalid set power (got {power}, needs to be 20, 40, 60, or 80)")
 
         set_power = self.get_tx_power()
-        num_presses = abs(set_power - power) / 20
+        num_presses = int(abs(set_power - power) / 20)
 
         if num_presses > 0:
             self.press(ToptekSwitches.SET_PWR)
@@ -202,7 +207,7 @@ class Toptek:
         state = self.read_state()
         if state.red_en:
             raise RuntimeError("Amplifier in error or in check SWR mode")
-        return state.state2power()
+        return state.get_power()
 
     def info(self) -> str:
         state = self.read_state()
@@ -224,7 +229,7 @@ class Toptek:
         else:
             outstr += ", SSB is DISABLED"
 
-        if sw_state.show_swr:
+        if sw_state.sw_show_swr:
             outstr += ", SHOW SWR mode is ENABLED (not implemented)"
             return outstr
 

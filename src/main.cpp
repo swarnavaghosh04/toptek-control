@@ -158,30 +158,32 @@ void loop()
 void processCommand(char command, char target) {
     Serial.println("");
     if (command == 'R') {
+        uint16_t curShiftState_buf = curShiftState;
+        uint16_t curSwitchState_buf = curSwitchState;
         switch(target) {
             case 'A':
-                Serial.println(curShiftState, HEX);
+                Serial.println(curShiftState_buf, HEX);
                 break;
             case 'S': 
                 Serial.println(daOverSWR, HEX);
                 break;
             case 'W':
-                Serial.println(curSwitchState, HEX);
+                Serial.println(curSwitchState_buf, HEX);
                 break;
             case '1':
-                Serial.println(bitRead(curSwitchState, SWITCH_SSB_ON), HEX);
+                Serial.println(bitRead(curSwitchState_buf, SWITCH_SSB_ON), HEX);
                 break;
             case '2':
-                Serial.println(bitRead(curSwitchState, SWITCH_TX_PA), HEX);
+                Serial.println(bitRead(curSwitchState_buf, SWITCH_TX_PA), HEX);
                 break;
             case '3':
-                Serial.println(bitRead(curSwitchState, SWITCH_SET_PWR), HEX);
+                Serial.println(bitRead(curSwitchState_buf, SWITCH_SET_PWR), HEX);
                 break;
             case '4':
-                Serial.println(bitRead(curSwitchState, SWITCH_RX_LNA), HEX);
+                Serial.println(bitRead(curSwitchState_buf, SWITCH_RX_LNA), HEX);
                 break;
             case '5':
-                Serial.println(bitRead(curSwitchState, SWITCH_SHOW_SWR), HEX);
+                Serial.println(bitRead(curSwitchState_buf, SWITCH_SHOW_SWR), HEX);
                 break;
             case '6':
                 Serial.println(daSwitch, HEX);
@@ -190,21 +192,22 @@ void processCommand(char command, char target) {
                 Serial.println("Unhandled statement");
         }
     } else if (command == 'S') {
+        uint8_t curSwitchState_buf = curSwitchState;
         switch(target) {
             case '1':
-                bitSet(curSwitchState, SWITCH_SSB_ON);
+                bitSet(curSwitchState_buf, SWITCH_SSB_ON);
                 break;
             case '2':
-                bitSet(curSwitchState, SWITCH_TX_PA);
+                bitSet(curSwitchState_buf, SWITCH_TX_PA);
                 break;
             case '3':
-                bitSet(curSwitchState, SWITCH_SET_PWR);
+                bitSet(curSwitchState_buf, SWITCH_SET_PWR);
                 break;
             case '4':
-                bitSet(curSwitchState, SWITCH_RX_LNA);
+                bitSet(curSwitchState_buf, SWITCH_RX_LNA);
                 break;
             case '5':
-                bitSet(curSwitchState, SWITCH_SHOW_SWR);
+                bitSet(curSwitchState_buf, SWITCH_SHOW_SWR);
                 break;
             case '6': 
                 daSwitch = 1;
@@ -212,22 +215,24 @@ void processCommand(char command, char target) {
             default:
                 Serial.println("Unhandled statement");
         }
+        curSwitchState = curSwitchState_buf;
     } else if (command == 'U') {
+        uint8_t curSwitchState_buf = curSwitchState;
         switch(target) {
             case '1':
-                bitClear(curSwitchState, SWITCH_SSB_ON);
+                bitClear(curSwitchState_buf, SWITCH_SSB_ON);
                 break;
             case '2':
-                bitClear(curSwitchState, SWITCH_TX_PA);
+                bitClear(curSwitchState_buf, SWITCH_TX_PA);
                 break;
             case '3':
-                bitClear(curSwitchState, SWITCH_SET_PWR);
+                bitClear(curSwitchState_buf, SWITCH_SET_PWR);
                 break;
             case '4':
-                bitClear(curSwitchState, SWITCH_RX_LNA);
+                bitClear(curSwitchState_buf, SWITCH_RX_LNA);
                 break;
             case '5':
-                bitClear(curSwitchState, SWITCH_SHOW_SWR);
+                bitClear(curSwitchState_buf, SWITCH_SHOW_SWR);
                 break;
             case '6': 
                 daSwitch = 0;
@@ -235,5 +240,16 @@ void processCommand(char command, char target) {
             default:
                 Serial.println("Unhandled statement");
         }
+        curSwitchState = curSwitchState_buf;
+    } else if (command == 'E' && target == 'N') {
+        pinMode(MATRIX_A_PIN, OUTPUT);
+        pinMode(MATRIX_B_PIN, OUTPUT);
+        Serial.println("Remote keys enabled");
+    } else if (command == 'D' && target == 'S') {
+        pinMode(MATRIX_A_PIN, INPUT);
+        pinMode(MATRIX_B_PIN, INPUT);
+        Serial.println("Remote keys disabled");
+    } else {
+        Serial.println("Unknown command");
     }
 }
