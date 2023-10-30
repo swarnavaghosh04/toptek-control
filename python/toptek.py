@@ -436,7 +436,6 @@ class Toptek:
     def da_on(self) -> None:
         """Turns the DA on"""
         state = self.get_switch_state()
-        print(state.sw_da_on)
         if not state.sw_da_on:
             logging.info("Turning DA on")
             self.switch_on(ToptekSwitches.DA_EN)
