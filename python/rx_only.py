@@ -5,7 +5,7 @@ from toptek import Toptek
 
 
 def main():
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.INFO)
 
     parser = ArgumentParser(
         prog="PA_on.py",
@@ -16,17 +16,13 @@ def main():
         help="Serial port connected to an Arduino (typically /dev/ttyUSB0)",
     )
 
-    logging.basicConfig(level=logging.DEBUG)
-
     args = parser.parse_args()
 
     pa = Toptek(args.port)
 
     pa.lna_on()
-    pa.pa_on()
-    pa.da_on()
-
-    pa.set_tx_power(40)
+    pa.pa_off()
+    pa.da_off()
 
     print(pa.info())
 

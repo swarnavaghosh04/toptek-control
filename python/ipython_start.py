@@ -2,6 +2,7 @@ import logging
 from argparse import ArgumentParser
 
 from IPython import get_ipython
+
 from toptek import Toptek
 
 parser = ArgumentParser(
