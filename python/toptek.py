@@ -194,7 +194,7 @@ class Toptek:
             raise RuntimeError("Failed to disable remote keys")
         logging.info("Disabled remote control of PA")
 
-    def read_state(self) -> ToptekState:
+    def get_state(self) -> ToptekState:
         """Read the current state of the LEDs"""
         da_state = int(self.query("RS"))
         toptek_state = int(self.query("RA"), 16)
@@ -215,8 +215,7 @@ class Toptek:
             bool(da_state),
         )
 
-    # BECOME GET
-    def read_switch_state(self) -> ToptekSwitchState:
+    def get_switch_state(self) -> ToptekSwitchState:
         """Read the current state of all buttons"""
         da_sw = int(self.query("R6"))
         toptek_sw = int(self.query("RS"), 16)
@@ -231,8 +230,8 @@ class Toptek:
 
     def info(self) -> str:
         """Returns a verbose string with basic state information"""
-        state = self.read_state()
-        sw_state = self.read_switch_state()
+        state = self.get_state()
+        sw_state = self.get_switch_state()
         outstr = "Toptek State: "
 
         if state.tx_pa:
@@ -282,7 +281,7 @@ class Toptek:
         TOTAL_DELAY = 2  # Time until PA's bargraph mode turns off
         for i in range(int(TOTAL_DELAY / POLL_DELAY)):
             time.sleep(POLL_DELAY)
-            state = self.read_state()
+            state = self.get_state()
             if state.get_power() != 0:
                 time.sleep(TOTAL_DELAY - i * POLL_DELAY)
                 break
@@ -331,7 +330,7 @@ class Toptek:
 
     def get_cur_power(self) -> int:
         """Get the power that the PA is currently outputting"""
-        state = self.read_state()
+        state = self.get_state()
         if state.red_en:
             raise RuntimeError("Amplifier in error or in check SWR mode")
         logging.info(f"Current power is {state.get_power()}W")
@@ -343,14 +342,14 @@ class Toptek:
 
     def pa_on(self) -> None:
         """Turns the PA on"""
-        state = self.read_state()
+        state = self.get_state()
         if not state.tx_pa:
             logging.info("Turning PA on")
             self.press(ToptekSwitches.TX_PA)
             # sometimes the PA needs some extra time
             time.sleep(0.3)
 
-            state = self.read_state()
+            state = self.get_state()
             if not state.tx_pa:
                 raise RuntimeError("PA not turned on")
         else:
@@ -358,12 +357,12 @@ class Toptek:
 
     def pa_off(self) -> None:
         """Turns the PA off"""
-        state = self.read_state()
+        state = self.get_state()
         if state.tx_pa:
             logging.info("Turning PA off")
             self.press(ToptekSwitches.TX_PA)
 
-            state = self.read_state()
+            state = self.get_state()
             if state.tx_pa:
                 raise RuntimeError("PA not turned off")
         else:
@@ -371,14 +370,14 @@ class Toptek:
 
     def lna_on(self) -> None:
         """Turns the LNA on"""
-        state = self.read_state()
+        state = self.get_state()
         if not state.lna_on:
             logging.info("Turning LNA on")
             self.press(ToptekSwitches.RX_LNA)
             # sometimes the LNA needs some extra time
             time.sleep(0.3)
 
-            state = self.read_state()
+            state = self.get_state()
             if not state.lna_on:
                 raise RuntimeError("LNA not turned on")
         else:
@@ -386,12 +385,12 @@ class Toptek:
 
     def lna_off(self) -> None:
         """Turns the LNA off"""
-        state = self.read_state()
+        state = self.get_state()
         if state.lna_on:
             logging.info("Turning LNA off")
             self.press(ToptekSwitches.RX_LNA)
 
-            state = self.read_state()
+            state = self.get_state()
             if state.lna_on:
                 raise RuntimeError("LNA not turned off")
         else:
@@ -399,7 +398,7 @@ class Toptek:
 
     def ssb_on(self) -> None:
         """Turns SSB mode on. Only can be set when the PA is on"""
-        state = self.read_state()
+        state = self.get_state()
         if not state.tx_pa:
             logging.warning("Cannot turn on SSB when PA not on")
             return
@@ -410,7 +409,7 @@ class Toptek:
             # sometimes the SSB needs some extra time
             time.sleep(0.5)
 
-            state = self.read_state()
+            state = self.get_state()
             if not state.ssb_on:
                 raise RuntimeError("SSB not turned on")
 
@@ -419,7 +418,7 @@ class Toptek:
 
     def ssb_off(self) -> None:
         """Turns the SSB mode off. Can only be unset when the PA is off"""
-        state = self.read_state()
+        state = self.get_state()
         if not state.tx_pa:
             logging.warning("Cannot turn off SSB when PA not on")
             return
@@ -428,7 +427,7 @@ class Toptek:
             logging.info("Turning SSB off")
             self.press(ToptekSwitches.SSB_ON)
 
-            state = self.read_state()
+            state = self.get_state()
             if state.ssb_on:
                 raise RuntimeError("SSB not turned off")
         else:
@@ -436,13 +435,13 @@ class Toptek:
 
     def da_on(self) -> None:
         """Turns the DA on"""
-        state = self.read_switch_state()
+        state = self.get_switch_state()
         print(state.sw_da_on)
         if not state.sw_da_on:
             logging.info("Turning DA on")
             self.switch_on(ToptekSwitches.DA_EN)
 
-            state = self.read_switch_state()
+            state = self.get_switch_state()
             if not state.sw_da_on:
                 raise RuntimeError("DA not turned on")
         else:
@@ -450,12 +449,12 @@ class Toptek:
 
     def da_off(self) -> None:
         """Turns the DA off"""
-        state = self.read_switch_state()
+        state = self.get_switch_state()
         if state.sw_da_on:
             logging.info("Turning DA off")
             self.switch_off(ToptekSwitches.DA_EN)
 
-            state = self.read_switch_state()
+            state = self.get_switch_state()
             if state.sw_da_on:
                 raise RuntimeError("DA not turned off")
         else:
