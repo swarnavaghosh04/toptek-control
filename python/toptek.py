@@ -341,7 +341,7 @@ class Toptek:
     def get_cur_power(self) -> int:
         """Get the power that the PA is currently outputting"""
         state = self.get_state()
-        if not state.pa_en:
+        if not state.tx_pa:
             raise RuntimeError("Amplifier is not on!")
         if state.red_en:
             raise RuntimeError("Amplifier in error or in check SWR mode")
