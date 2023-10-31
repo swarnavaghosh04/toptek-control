@@ -294,6 +294,11 @@ class Toptek:
 
     def get_tx_power(self) -> int:
         """Get the power that the PA is set to"""
+        state = self.get_state()
+        if not state.tx_pa:
+            # Can't get the tx power when PA off
+            return 0
+
         self.press(ToptekSwitches.SET_PWR)
         return self.get_flashy_bargraph().get_power()
 
@@ -303,6 +308,11 @@ class Toptek:
             raise ValueError(
                 f"Invalid set power (got {power}, needs to be 20, 40, 60, or 80)"
             )
+
+        state = self.get_state()
+        if not state.tx_pa:
+            raise RuntimeError("Cannot set power when PA off!")
+            return
 
         set_power = self.get_tx_power()
         if set_power < power:
@@ -331,6 +341,8 @@ class Toptek:
     def get_cur_power(self) -> int:
         """Get the power that the PA is currently outputting"""
         state = self.get_state()
+        if not state.pa_en:
+            raise RuntimeError("Amplifier is not on!")
         if state.red_en:
             raise RuntimeError("Amplifier in error or in check SWR mode")
         logging.info(f"Current power is {state.get_power()}W")
