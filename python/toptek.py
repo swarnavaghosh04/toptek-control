@@ -84,15 +84,16 @@ class ToptekState:
 
         errors = []
 
-        if self.led_10:
+        # In red LED mode, values are inverted
+        if not self.led_10:
             errors.append("PA FAIL")
-        if self.led_20:
+        if not self.led_20:
             errors.append("HIGH TEMP")
-        if self.led_30:
+        if not self.led_30:
             errors.append("DC VOLTAGE")
-        if self.led_40:
+        if not self.led_40:
             errors.append("OVERDRIVE")
-        if self.led_50:
+        if not self.led_50:
             errors.append("HIGH SWR")
 
         return errors
@@ -261,13 +262,13 @@ class Toptek:
             outstr += ", SHOW SWR mode is ENABLED (not implemented)"
             return outstr
 
-        outstr += f", output power set at {self.get_tx_power()}W"
-
         if state.red_en:
-            outstr += f", ERRORS: {state.get_errors()}"
+            outstr += f", ERRORS: {self.get_errors()}"
             return outstr
+        else:
+            outstr += f", output power set at {self.get_tx_power()}W"
 
-        outstr += f", current power: {state.get_power()}"
+            outstr += f", current power: {state.get_power()}"
 
         return outstr
 
@@ -291,6 +292,13 @@ class Toptek:
     #  ╭──────────────────────────────────────────────────────────╮
     #  │                      POWER HELPERS                       │
     #  ╰──────────────────────────────────────────────────────────╯
+
+    def get_errors(self) -> list[str]:
+        state = self.get_state()
+        if state.red_en is False:
+            return [""]
+
+        return self.get_flashy_bargraph().get_errors()
 
     def get_tx_power(self) -> int:
         """Get the power that the PA is set to"""
