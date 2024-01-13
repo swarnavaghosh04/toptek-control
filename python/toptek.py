@@ -98,6 +98,12 @@ class ToptekState:
 
         return errors
 
+    def any_on(self) -> bool:
+        if self.led_80 or self.led_70 or self.led_60 or self.led_50 or self.led_40 or self.led_30 or self.led_20 or self.led_10:
+            return True
+        else:
+            return False
+
 
 @dataclass
 class ToptekSwitchState:
@@ -283,7 +289,7 @@ class Toptek:
         for i in range(int(TOTAL_DELAY / POLL_DELAY)):
             time.sleep(POLL_DELAY)
             state = self.get_state()
-            if state.get_power() != 0:
+            if state.any_on() != 0:
                 time.sleep(TOTAL_DELAY - i * POLL_DELAY)
                 break
 

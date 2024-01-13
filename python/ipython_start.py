@@ -14,7 +14,7 @@ parser.add_argument(
     help="Serial port connected to an Arduino (typically /dev/ttyUSB0)",
 )
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 
 args = parser.parse_args()
 
