@@ -466,6 +466,12 @@ class Toptek:
         else:
             logging.info("DA already on")
 
+    def da_on_fast(self) -> None:
+        self.switch_on(ToptekSwitches.DA_EN)
+
+    def da_off_fast(self) -> None:
+        self.switch_off(ToptekSwitches.DA_EN)
+
     def da_off(self) -> None:
         """Turns the DA off"""
         state = self.get_switch_state()
