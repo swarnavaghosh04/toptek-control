@@ -10,7 +10,7 @@ execute_process(
 	OUTPUT_STRIP_TRAILING_WHITESPACE
 )
 
-install(FILES __init__.py toptek.py all_off.py get_state.py rx_only.py rx_tx_on.py
+install(FILES __init__.py toptek.py
 	DESTINATION ${PYTHON_SITE}/${PROJECT_NAME})
 
 set(CPACK_PACKAGE_CONTACT "Reid Sox-Harris <reidsox1@gmail.com>")
