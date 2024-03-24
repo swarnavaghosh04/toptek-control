@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "toptek"
+version = "1.0.0"
+description = "A Python interface for the PA-80U amplifier"
+authors = ["Reid Sox-Harris <reid@soxharris.com>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+pyserial = "^3.5"
+
+[tool.poetry.group.dev.dependencies]
+black = "^24.3.0"
+isort = "^5.13.2"
+flake8 = "^7.0.0"
+mypy = "^1.9.0"
+types-pyserial = "^3.5.0.20240311"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

@@ -36,13 +36,14 @@
 #define MATRIX_A_PIN    7 // PD7: Connect to PA pin 5, MAT_A
 #define MATRIX_B_PIN    6 // PD6: Connect to PA pin 6, MAT_B
 
-#define DA_EN_PIN       5 // Connect to DA ??? via 3.3V voltage divider
-#define DA_SWR_PIN      4 // Connect to DA ???
+#define DA_EN_PIN       5 // PD5: Connect to DA pin 2 via 3.3V voltage divider
+#define DA_EN_PORT_PIN  5 // for setting
+#define DA_SWR_PIN      4 // Connect to DA pin 5
 
 // Globals
 volatile uint8_t spi_buffer[2]  = {0};
 volatile bool spi_pos           = 0;
-volatile uint8_t port_d_preload = 0;
+volatile uint8_t port_d_preload = PORTD;
 
 
 volatile uint16_t curShiftState = 0;
@@ -62,18 +63,22 @@ void processCommand(char command, char target);
  */
 ISR(SPI_STC_vect) {
     // To prevent carryover to next row
-    // PORTD = port_d_preload;
 
-    PORTD = port_d_preload;
+    // Immediately refresh matrix pins to prevent carryover to next row
+    // Only set matrix pins, leave all else same
+    PORTD = (PORTD & 0b00111111) | port_d_preload;
 
     spi_buffer[spi_pos] = SPDR;
 
     spi_pos             = spi_pos ? 0 : 1;
 
+    // port_d_preload only stores the matrix pin state, zeros for other positions
     if (spi_pos) {
-        port_d_preload = (PORTD & 0b00111111);
+        // If this is the second byte, turn off the matrix pins
+        port_d_preload = 0b00000000;
     } else {
-        port_d_preload = PORTD;
+        // If this is the first byte, repeat previous
+        port_d_preload = PORTD & 0b11000000;
     }
 
     // Post-processing
@@ -82,8 +87,6 @@ ISR(SPI_STC_vect) {
 
         // Set switch col state to match row state
         // col pins are bit 7 = MAT_A, bit 6 = MAT_B
-        // Serial.print(curShiftState, HEX);
-        // Serial.println(bitRead(curShiftState, SHIFT_ROW_1));
         uint8_t writeValues = 0;
         if (bitRead(curShiftState, SHIFT_ROW_3)) {
             writeValues = ((curSwitchState | singleShotSwitch) & 0b00110000) << 2;
@@ -96,6 +99,7 @@ ISR(SPI_STC_vect) {
             if (singleShotSwitch & 0b00000011) singleShotSwitch = 0;
         }
 
+        // Push matrix values out
         PORTD = (PORTD & 0b00111111) | writeValues;
     }
 }
@@ -162,7 +166,6 @@ void loop() {
     }
 
     // Refresh DA values
-    digitalWrite(DA_EN_PIN, daSwitch);
     daOverSWR = digitalRead(DA_SWR_PIN);
 }
 
@@ -222,6 +225,7 @@ void processCommand(char command, char target) {
                 break;
             case '6':
                 daSwitch = 1;
+                PORTD = bitWrite(PORTD, DA_EN_PORT_PIN, daSwitch);
                 break;
             default:
                 Serial.println("Unhandled statement");
@@ -247,6 +251,7 @@ void processCommand(char command, char target) {
                 break;
             case '6':
                 daSwitch = 0;
+                PORTD = bitWrite(PORTD, DA_EN_PORT_PIN, daSwitch);
                 break;
             default:
                 Serial.println("Unhandled statement");
