@@ -366,14 +366,14 @@ class Toptek:
     #  │                      SWITCH HELPERS                      │
     #  ╰──────────────────────────────────────────────────────────╯
 
-    def pa_on(self) -> None:
+    def pa_on(self, pa_delay=0.5) -> None:
         """Turns the PA on"""
         state = self.get_state()
         if not state.tx_pa:
             logging.info("Turning PA on")
             self.press(ToptekSwitches.TX_PA)
             # sometimes the PA needs some extra time
-            time.sleep(0.3)
+            time.sleep(pa_delay)
 
             state = self.get_state()
             if not state.tx_pa:
@@ -394,14 +394,14 @@ class Toptek:
         else:
             logging.info("PA already off")
 
-    def lna_on(self) -> None:
+    def lna_on(self, lna_delay=0.5) -> None:
         """Turns the LNA on"""
         state = self.get_state()
         if not state.lna_on:
             logging.info("Turning LNA on")
             self.press(ToptekSwitches.RX_LNA)
             # sometimes the LNA needs some extra time
-            time.sleep(0.3)
+            time.sleep(lna_delay)
 
             state = self.get_state()
             if not state.lna_on:
@@ -422,7 +422,7 @@ class Toptek:
         else:
             logging.info("LNA already off")
 
-    def ssb_on(self) -> None:
+    def ssb_on(self, ssb_delay=0.5) -> None:
         """Turns SSB mode on. Only can be set when the PA is on"""
         state = self.get_state()
         if not state.tx_pa:
@@ -433,7 +433,7 @@ class Toptek:
             logging.info("Turning SSB on")
             self.press(ToptekSwitches.SSB_ON)
             # sometimes the SSB needs some extra time
-            time.sleep(0.5)
+            time.sleep(ssb_delay)
 
             state = self.get_state()
             if not state.ssb_on:
